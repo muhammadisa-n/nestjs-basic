@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Header,
@@ -6,6 +7,7 @@ import {
   HttpException,
   Inject,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -20,6 +22,11 @@ import { MemberService } from '../member/member.service';
 import { MailService } from '../mail/mail.service';
 import { User } from '@prisma/client';
 import { ValidationFilter } from 'src/validation/validation.filter';
+import {
+  LoginUserRequest,
+  loginUserRequestValidation,
+} from 'src/model/login.model';
+import { ValidationPipe } from 'src/validation/validation.pipe';
 @Controller('/api/users')
 export class UserController {
   constructor(
@@ -29,6 +36,15 @@ export class UserController {
     private userRepository: UserRepository,
     private memberService: MemberService,
   ) {}
+
+  @UseFilters(ValidationFilter)
+  @Post('/login')
+  login(
+    @Body(new ValidationPipe(loginUserRequestValidation))
+    request: LoginUserRequest,
+  ) {
+    return `Hello ${request.username}`;
+  }
   @Get('/create')
   async create(
     @Query('firstName') firstName: string,
@@ -88,7 +104,7 @@ export class UserController {
     return `Hello ${name}`;
   }
   @Get('/:id')
-  getParams(@Param('id') id: string): string {
+  getParams(@Param('id', ParseIntPipe) id: number): string {
     return `${id}`;
   }
   @Post()
